@@ -1,5 +1,3 @@
-# P_FAA
-
 ## Start working
 
 ### If there is a remote repository that has content (which is the case)
