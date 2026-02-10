@@ -12,23 +12,20 @@ using Flux.Losses
 
 
 function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
-    
+    if length(classes)<=2
+        oneHot = reshape(feature.==classes[1], :, 1);
+        return oneHot;
+        # Si solo hay dos o menos(1) clases, se genera una matriz con una columna
+    else
+        # Si hay mas de dos clases se genera una matriz con una columna por clase
+        oneHot = convert(BitArray{2}, hcat([instance.==classes for instance in feature]...)');
+        return oneHot;
+
 end;
 
-function oneHotEncoding(feature::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature))
 
-function oneHotEncoding(feature::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, :, 1)
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
     #
@@ -313,7 +310,4 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, dat
     #
     # Codigo a desarrollar
     #
-end;
-
-
-
+    end;
