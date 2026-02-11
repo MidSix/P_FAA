@@ -1,6 +1,6 @@
 using DelimitedFiles
 # Cargamos el dataset
-dataset = readdlm("iris.data",',');
+dataset = readdlm("./iris.data",',');
 
 # Preparamos las entradas
 inputs = dataset[:,1:4];

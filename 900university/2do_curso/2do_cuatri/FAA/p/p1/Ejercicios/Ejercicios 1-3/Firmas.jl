@@ -28,15 +28,11 @@ oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique
 oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, :, 1)
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    return (minimun(dataset,dims=1),maximun(dataset,dims=1))
 end;
 
 function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    return (mean(dataset,dims=1),std(dataset,dims=1))
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
@@ -291,8 +287,6 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
     # Codigo a desarrollar
     #
 end;
-
-
 # ----------------------------------------------------------------------------------------------
 # ------------------------------------- Ejercicio 6 --------------------------------------------
 # ----------------------------------------------------------------------------------------------
@@ -305,9 +299,8 @@ SVMClassifier = MLJ.@load SVC pkg=LIBSVM verbosity=0
 kNNClassifier = MLJ.@load KNNClassifier pkg=NearestNeighborModels verbosity=0
 DTClassifier  = MLJ.@load DecisionTreeClassifier pkg=DecisionTree verbosity=0
 
-
-function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, crossValidationIndices::Array{Int64,1})
+function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, 
+    dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, 
+    crossValidationIndices::Array{Int64,1})
     #
-    # Codigo a desarrollar
-    #
-    end;
+end;
