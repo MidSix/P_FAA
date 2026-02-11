@@ -20,7 +20,7 @@ function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{
         # Si hay mas de dos clases se genera una matriz con una columna por clase
         oneHot = convert(BitArray{2}, hcat([instance.==classes for instance in feature]...)');
         return oneHot;
-
+    end;
 end;
 
 oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature))
@@ -36,63 +36,55 @@ function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    minValues = normalizationParameters[1];
+    maxValues = normalizationParameters[2];
+    dataset .-= minValues;
+    dataset ./= (maxValues .- minValues);
+    dataset[:, vec(minValues.==maxValues)] .= 0;
+    return dataset;
 end;
 
-function normalizeMinMax!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeMinMax!(dataset::AbstractArray{<:Real,2})=normalizeMinMax!(dataset,calculateMinMaxNormalizationParameters(dataset))
+
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    return normalizeMinMax!(copy(dataset),normalizationParameters);
 end;
 
-function normalizeMinMax(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeMinMax(dataset::AbstractArray{<:Real,2})=normalizeMinMax(dataset,calculateMinMaxNormalizationParameters(dataset))
+
 
 function normalizeZeroMean!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues = normalizationParameters[1];
+    stdValues = normalizationParameters[2];  
+    dataset .-= avgValues;
+    dataset ./= stdValues;
+    dataset[:, vec(stdValues.==0)] .= 0;
+    return dataset;
 end;
 
-function normalizeZeroMean!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeZeroMean!(dataset::AbstractArray{<:Real,2})=normalizeZeroMean!(dataset,calculateZeroMeanNormalizationParameters(dataset))
+
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    return normalizeZeroMean!(copy(dataset),normalizationParameters);
+
 end;
 
-function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeZeroMean(dataset::AbstractArray{<:Real,2})=normalizeZeroMean(dataset, calculateZeroMeanNormalizationParameters(dataset))
 
-function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
-end;
+
+classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=thershold;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return reshape(classifyOutputs(vec(outputs); threshold=threshold), :, 1);
+    else
+         (_,indicesMaxEachInstance) = findmax(outputs, dims=2);
+         outputs_bool = falses(size(outputs));
+         outputs_bool[indicesMaxEachInstance].= true;  
+        return outputs_bool;
+    end; 
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
