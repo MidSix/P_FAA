@@ -2,10 +2,18 @@
 
 # Archivo de pruebas para realizar autoevaluación de algunas funciones de los ejercicios
 
+include("soluciones.jl");
 # Importamos el archivo con las soluciones a los ejercicios
-include("firmas.jl");
-#   Cambiar "soluciones.jl" por el nombre del archivo que contenga las funciones desarrolladas
+# Simplemente se trae el espacio de nombres del modulo en cuestion
+# a diferencia de using que copia el espacio de nombres pero se
+# mantienen independientes include te mueve el espacio de nombres del
+# modulo que importar al namespace global, haciendo que si hay conflicto
+# de nombres NO se pueda salucionar si no es cambiendo el nombre o
+# agregando mas variables o las mismas pero de distintos tipos
+# Multiple Dispatch.
 
+import Random;
+import Pkg
 
 
 # Fichero de pruebas realizado con la versión 1.11.2 de Julia
@@ -13,20 +21,22 @@ println(VERSION)
 #  y la 1.11.3 de Random
 println(Random.VERSION)
 #  y la versión 0.14.25 de Flux
-import Pkg
+# simplemente comprueba la version de Flux, no lo importa.
+# el paquete flux se importa en el archivo soluciones.jl
 Pkg.status("Flux")
-
-# Es posible que con otras versiones los resultados sean distintos, estando las funciones bien, sobre todo en la funciones que implican alguna componente aleatoria
-
-
+# Es posible que con otras versiones los resultados sean distintos,
+# estando las funciones bien, sobre todo en la funciones que implican alguna componente aleatoria
 
 
 # Cargamos el dataset
+
 using DelimitedFiles: readdlm
-dataset = readdlm("iris.data",',');
+dataset = readdlm("irisdata.data", ',');
 # Preparamos las entradas
 inputs = convert(Array{Float32,2}, dataset[:,1:4]);
-
+inputs
+dataset[:,1:4];
+type(dataset[1,1]);
 
 # ----------------------------------------------------------------------------------------------
 # ------------------------------------- Ejercicio 2 --------------------------------------------
