@@ -1,7 +1,5 @@
-# P_FAA
-Practicas de FAA
+# P_FAA (Practicas de FAA)
 
-=======
 ## Start working
 
 ### If there is a remote repository that has content (which is the case)
@@ -14,3 +12,4 @@ Cloning:
 - creates the local repo
 - sets the remote automatically
 - pulls all history
+
