@@ -1,6 +1,6 @@
 using DelimitedFiles
 # Cargamos el dataset
-dataset = readdlm("iris.data",',');
+dataset = readdlm("./iris.data",',');
 
 # Preparamos las entradas
 inputs = dataset[:,1:4];
@@ -9,7 +9,6 @@ inputs = Float32.(inputs);
 inputs = convert(Array{Float32,2},inputs);
 inputs = [Float32(x) for x in inputs];
 println("Tamaño de la matriz de entradas: ", size(inputs,1), "x", size(inputs,2), " de tipo ", typeof(inputs));
-
 # Preparamos las salidas deseadas codificándolas puesto que son categóricas
 targets = dataset[:,5];
 println("Longitud del vector de salidas deseadas antes de codificar: ", length(targets), " de tipo ", typeof(targets));

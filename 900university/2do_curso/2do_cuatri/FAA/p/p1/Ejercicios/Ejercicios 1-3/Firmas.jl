@@ -12,94 +12,79 @@ using Flux.Losses
 
 
 function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
-    
+    if length(classes)<=2
+        oneHot = reshape(feature.==classes[1], :, 1);
+        return oneHot;
+        # Si solo hay dos o menos(1) clases, se genera una matriz con una columna
+    else
+        # Si hay mas de dos clases se genera una matriz con una columna por clase
+        oneHot = convert(BitArray{2}, hcat([instance.==classes for instance in feature]...)');
+        return oneHot;
+    end;
 end;
 
-function oneHotEncoding(feature::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature))
 
-function oneHotEncoding(feature::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, :, 1)
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    return (minimun(dataset,dims=1),maximun(dataset,dims=1))
 end;
 
 function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    return (mean(dataset,dims=1),std(dataset,dims=1))
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    minValues = normalizationParameters[1];
+    maxValues = normalizationParameters[2];
+    dataset .-= minValues;
+    dataset ./= (maxValues .- minValues);
+    dataset[:, vec(minValues.==maxValues)] .= 0;
+    return dataset;
 end;
 
-function normalizeMinMax!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeMinMax!(dataset::AbstractArray{<:Real,2})=normalizeMinMax!(dataset,calculateMinMaxNormalizationParameters(dataset))
+
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    return normalizeMinMax!(copy(dataset),normalizationParameters);
 end;
 
-function normalizeMinMax(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeMinMax(dataset::AbstractArray{<:Real,2})=normalizeMinMax(dataset,calculateMinMaxNormalizationParameters(dataset))
+
 
 function normalizeZeroMean!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues = normalizationParameters[1];
+    stdValues = normalizationParameters[2];  
+    dataset .-= avgValues;
+    dataset ./= stdValues;
+    dataset[:, vec(stdValues.==0)] .= 0;
+    return dataset;
 end;
 
-function normalizeZeroMean!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeZeroMean!(dataset::AbstractArray{<:Real,2})=normalizeZeroMean!(dataset,calculateZeroMeanNormalizationParameters(dataset))
+
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    return normalizeZeroMean!(copy(dataset),normalizationParameters);
+
 end;
 
-function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
-end;
+normalizeZeroMean(dataset::AbstractArray{<:Real,2})=normalizeZeroMean(dataset, calculateZeroMeanNormalizationParameters(dataset))
 
-function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
-end;
+
+classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=thershold;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return reshape(classifyOutputs(vec(outputs); threshold=threshold), :, 1);
+    else
+         (_,indicesMaxEachInstance) = findmax(outputs, dims=2);
+         outputs_bool = falses(size(outputs));
+         outputs_bool[indicesMaxEachInstance].= true;  
+        return outputs_bool;
+    end; 
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
@@ -294,8 +279,6 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
     # Codigo a desarrollar
     #
 end;
-
-
 # ----------------------------------------------------------------------------------------------
 # ------------------------------------- Ejercicio 6 --------------------------------------------
 # ----------------------------------------------------------------------------------------------
@@ -308,12 +291,8 @@ SVMClassifier = MLJ.@load SVC pkg=LIBSVM verbosity=0
 kNNClassifier = MLJ.@load KNNClassifier pkg=NearestNeighborModels verbosity=0
 DTClassifier  = MLJ.@load DecisionTreeClassifier pkg=DecisionTree verbosity=0
 
-
-function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, crossValidationIndices::Array{Int64,1})
-    #
-    # Codigo a desarrollar
+function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, 
+    dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, 
+    crossValidationIndices::Array{Int64,1})
     #
 end;
-
-
-
