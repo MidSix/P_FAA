@@ -74,7 +74,7 @@ end;
 normalizeZeroMean(dataset::AbstractArray{<:Real,2})=normalizeZeroMean(dataset, calculateZeroMeanNormalizationParameters(dataset))
 
 
-classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=thershold;
+classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=threshold;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
     if size(outputs,2)==1
@@ -87,34 +87,44 @@ function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
     end; 
 end;
 
-function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})=mean(outputs.==targets);
 
 function accuracy(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2})
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return accuracy(vec(outputs),vec(targets));
+    else
+        comparison_matrix=outputs.==targets
+        correct_matrix=all(comparison_matrix,dims=2)# all(..., dims=2) nos dice si cada fila es completamente true, ya que un patron es correcto si toda su fila lo es
+        return mean(correct_matrix);
+    end;
 end;
 
-function accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
-end;
+accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)=accuracy(classifyOutputs(outputs;threshold),targets)
 
 function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return accuracy(vec(outputs),vec(targets));
+    else
+        correct_outputs=classifyOutputs(outputs;threshold)
+        return accuracy(correct_outputs,targets);
+    end;
 end;
 
 function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutputs::Int; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)))
-    #
-    # Codigo a desarrollar
-    #
+    ann = Chain(); #Creamos la ANN
+    numInputsLayer=numInputs
+    
+    for (i, numOutputsLayer) in enumerate(topology)
+        ann = Chain(ann..., Dense(numInputsLayer, numOutputsLayer, transferFunctions[i])); 
+        numInputsLayer = numOutputsLayer; # Actualizamos para la siguiente capa
+    end;
+    if numOutputs==1
+        ann = Chain(ann..., Dense(numInputsLayer, 1, σ));
+    else
+        ann = Chain(ann..., Dense(numInputsLayer, numOutputs, identity), softmax);
+    end;
+    
+    return ann;
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
