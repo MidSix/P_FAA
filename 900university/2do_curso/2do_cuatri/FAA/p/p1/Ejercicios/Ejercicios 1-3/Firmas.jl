@@ -1,10 +1,12 @@
 
-# Tened en cuenta que en este archivo todas las funciones tienen puesta la palabra reservada 'function' y 'end' al final
-# Según cómo las defináis, podrían tener que llevarlas o no
-
-# ----------------------------------------------------------------------------------------------
-# ------------------------------------- Ejercicio 2 --------------------------------------------
-# ----------------------------------------------------------------------------------------------
+```
+    Tened en cuenta que en este archivo todas las funciones tienen
+    puesta la palabra reservada 'function' y 'end' al final
+    Según cómo las defináis, podrían tener que llevarlas o no
+```
+# ----------------------------------------------------------------------
+# ------------------------- Ejercicio 2 --------------------------------
+# ----------------------------------------------------------------------
 
 using Statistics
 using Flux
