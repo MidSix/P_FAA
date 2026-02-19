@@ -30,7 +30,7 @@ oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique
 oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, :, 1)
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    return (minimun(dataset,dims=1),maximun(dataset,dims=1))
+    return (minimum(dataset,dims=1),maximum(dataset,dims=1))
 end;
 
 function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,2})
@@ -76,7 +76,7 @@ end;
 normalizeZeroMean(dataset::AbstractArray{<:Real,2})=normalizeZeroMean(dataset, calculateZeroMeanNormalizationParameters(dataset))
 
 
-classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=thershold;
+classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=threshold;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
     if size(outputs,2)==1
@@ -89,46 +89,78 @@ function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
     end; 
 end;
 
-function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})=mean(outputs.==targets);
 
 function accuracy(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2})
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return accuracy(vec(outputs),vec(targets));
+    else
+        comparison_matrix=outputs.==targets;
+        correct_matrix=all(comparison_matrix,dims=2);# all(..., dims=2) nos dice si cada fila es completamente true, ya que un patron es correcto si toda su fila lo es
+        return mean(correct_matrix);
+    end;
 end;
 
-function accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
-end;
+accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)=accuracy(classifyOutputs(outputs;threshold),targets)
 
 function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    if size(outputs,2)==1
+        return accuracy(vec(outputs),vec(targets));
+    else
+        correct_outputs=classifyOutputs(outputs;threshold);
+        return accuracy(correct_outputs,targets);
+    end;
 end;
 
 function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutputs::Int; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)))
-    #
-    # Codigo a desarrollar
-    #
+    ann = Chain(); #Creamos la ANN
+    numInputsLayer=numInputs;
+    
+    for (i, numOutputsLayer) in enumerate(topology)
+        ann = Chain(ann..., Dense(numInputsLayer, numOutputsLayer, transferFunctions[i])); 
+        numInputsLayer = numOutputsLayer; # Actualizamos para la siguiente capa
+    end;
+    if numOutputs==1
+        ann = Chain(ann..., Dense(numInputsLayer, 1, σ));
+    else
+        ann = Chain(ann..., Dense(numInputsLayer, numOutputs, identity), softmax);
+    end;
+    
+    return ann;
 end;
 
-function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
-    #
-    # Codigo a desarrollar
-    #
+function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
+     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
+    inputs=Float32.(dataset[1]);
+    outputs=dataset[2];
+
+    ann=buildClassANN(size(inputs,2),topology,size(outputs,2);transferFunctions);
+    
+    inputs=inputs'
+    outputs=outputs'#Para usar flux hay que tener los patrones en columnas
+
+    loss(x, y) = (size(y, 1) == 1) ? Flux.Losses.binarycrossentropy(ann(x), y) : Flux.Losses.logitcrossentropy(ann(x), y);#Sobrecarga de la función de pérdida para que se adapte a clasificación binaria o multiclase
+    opt_state = Flux.setup(Flux.Adam(learningRate), ann);
+
+    loss_history = Float32[];
+    push!(loss_history, Float32(loss(inputs, outputs)));
+
+    for epoch in 1:maxEpochs#Bucle de entrenamiento 
+
+        if loss_history[end] <= minLoss # Si ya hemos alcanzado el error mínimo, salimos
+
+            break;
+        end;
+        Flux.train!(loss, ann, [(inputs, outputs)], opt_state);
+        push!(loss_history, Float32(loss(inputs, outputs)));# Añadir el nuevo loss al historial (en Float32)
+
+    end;
+
+    return (ann, loss_history);
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1}, (inputs, targets)::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
-    #
-    # Codigo a desarrollar
-    #
+    return trainClassANN(topology, (inputs, reshape(targets, :, 1)); transferFunctions, maxEpochs, minLoss, learningRate);
 end;
 
 
