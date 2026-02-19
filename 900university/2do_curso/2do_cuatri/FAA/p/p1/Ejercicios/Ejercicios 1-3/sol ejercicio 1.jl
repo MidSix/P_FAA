@@ -1,16 +1,34 @@
 using DelimitedFiles
 # Cargamos el dataset
-dataset = readdlm("./iris.data",',');
+#=
+    **Dataset Overview**
+    - **Total Samples:** 150 (50 per species).
+    - **Species:** _Iris setosa_, _Iris virginica_, _Iris versicolor_.
+    - **Features:**
+        - Sepal length (cm)
+        - Sepal width (cm)
+        - Petal length (cm)
+        - Petal width (cm)
+    - **Target Variable:** Species.
+=#
+
+dataset = readdlm("iris.data",',');
 
 # Preparamos las entradas
 inputs = dataset[:,1:4];
-# Con cualquiera de estas 3 maneras podemos convertir la matriz de entradas de tipo Array{Any,2} en Array{Float32,2}, si los valores son numéricos:
+targets = dataset[:,5];
+# Con cualquiera de estas 3 maneras podemos convertir la matriz de
+# entradas de tipo Array{Any,2} en Array{Float32,2}, si los valores
+# son numéricos:
+# Por defecto los datos son tratados como Float64 en Julia
+# es recomendable pasarlos a Float32 para evitar desperdiciar recursos
+# en el entrenamiento del iris set.
 inputs = Float32.(inputs);
 inputs = convert(Array{Float32,2},inputs);
 inputs = [Float32(x) for x in inputs];
-println("Tamaño de la matriz de entradas: ", size(inputs,1), "x", size(inputs,2), " de tipo ", typeof(inputs));
+println("Tamaño de la matriz de entradas: ", size(inputs,1),
+        "x", size(inputs,2), " de tipo ", typeof(inputs));
 # Preparamos las salidas deseadas codificándolas puesto que son categóricas
-targets = dataset[:,5];
 println("Longitud del vector de salidas deseadas antes de codificar: ", length(targets), " de tipo ", typeof(targets));
 classes = unique(targets);
 numClasses = length(classes);
@@ -26,8 +44,24 @@ else
     #     oneHot[:,numClass] .= (targets.==classes[numClass]);
     # end;
     # Una forma de hacerlo sin bucles sería la siguiente:
+
+    # Se estan usando bucles igual, estan implementados dentro de los
+    # metodos usados.
     oneHot = convert(BitArray{2}, hcat([instance.==classes for instance in targets]...)');
+
     targets = oneHot;
+end;
+classes = reshape(classes,(1,3));
+targets = reshape(targets,(:,1));
+print(size(classes))
+print(size(targets))
+array = targets.==classes
+println(typeof(array))
+print(array isa BitArray{2});
+try
+    convert(BitArray{2}, targets.==classes')
+catch e
+    println(show(e))
 end;
 println("Tamaño de la matriz de salidas deseadas despues de codificar: ", size(targets,1), "x", size(targets,2), " de tipo ", typeof(targets));
 

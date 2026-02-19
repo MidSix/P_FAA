@@ -28,7 +28,7 @@ Pkg.status("Flux")
 # Cargamos el dataset
 
 using DelimitedFiles: readdlm
-dataset = readdlm("irisdata.data", ',');
+dataset = readdlm("iris.data", ',');
 # Preparamos las entradas
 inputs = convert(Array{Float32,2}, dataset[:,1:4]);
 inputs
@@ -46,11 +46,12 @@ targets = oneHotEncoding(dataset[:,5]);
 @assert(all(targets[  1:50 ,1]) && !any(targets[  1:50,  2:3 ])); # Primera clase
 @assert(all(targets[ 51:100,2]) && !any(targets[ 51:100,[1,3]])); # Segunda clase
 @assert(all(targets[101:150,3]) && !any(targets[101:150, 1:2] )); # Tercera clase
-
+#--> Comprobe que pasa los test.
 
 
 # Comprobamos que las funciones de normalizar funcionan correctamente
 # Normalizacion entre maximo y minimo
+
 newInputs = normalizeMinMax(inputs);
 @assert(!isnothing(newInputs))
 @assert(all(minimum(newInputs, dims=1) .== 0));
@@ -63,12 +64,13 @@ newInputs = normalizeZeroMean(inputs);
 
 # Finalmente, normalizamos las entradas entre maximo y minimo:
 normalizeMinMax!(inputs);
+#--> Comprobe que pasa los test.
 
 
 # Probamos la función classifyOutputs:
 @assert(classifyOutputs(0.1:0.1:1; threshold=0.65) == [falses(6); trues(4)]);
 @assert(classifyOutputs([1 2 3; 3 2 1; 2 3 1; 2 1 3]) == Bool[0 0 1; 1 0 0; 0 1 0; 0 0 1]);
-
+#--> Comprobe que pasa los test.
 
 # Comprobamos que la creación de la RNA funciona correctamente:
 ann = buildClassANN(4, [5], 3);
