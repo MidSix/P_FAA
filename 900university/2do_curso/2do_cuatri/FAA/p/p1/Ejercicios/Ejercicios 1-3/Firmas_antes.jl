@@ -1,36 +1,17 @@
-#=
-Miembros:
-    - Xoel Sánchez Dacoba
-    - Sebastián David Moreno Expósito
-Grupo de prácticas - Martes
-=#
-# ----------------------------------------------------------------------
-# ------------------------- Ejercicio 2 --------------------------------
-# ----------------------------------------------------------------------
+
+# Tened en cuenta que en este archivo todas las funciones tienen puesta la palabra reservada 'function' y 'end' al final
+# Según cómo las defináis, podrían tener que llevarlas o no
+
+# ----------------------------------------------------------------------------------------------
+# ------------------------------------- Ejercicio 2 --------------------------------------------
+# ----------------------------------------------------------------------------------------------
+
 using Statistics
 using Flux
 using Flux.Losses
 
+
 function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{<:Any,1})
-# "<:" -> es un operador de subtipo, simplemente le dice que el tipo
-# Hereda de lo que sea que esté a su derecha, al heredar de any entonces
-# el tipo de los elementos dentro del AbstractArray puede ser cualquier
-# cosa, esta por tanto es la definicion mas general de la funcion de
-# encoding.
-
-# En python el type hint es opcional e inutil para el interprete
-# En Julia el type hint es opcional e util para el compilador, una de
-# sus utilidades es facilitarnos el Multiple Dispatch. Sin tipos
-# predefinidos en funciones las opciones del multiple Dispatch se nos
-# limitarian solo al numero de argumentos que recibe la funcion y ya no
-# a sus tipos pues porque no tendrias tipos.
-
-# Aunque en los argumentos de la funcion tenemos que llamar feature a
-# uno de ellos, creo que es relevante
-# recalcar que en especifico para el dataset iris.data debemos usar la
-# codificacion sobre las variables categoricas, NO sobre las numericas,
-# es decir, solo se pasara el target del dataset con el que se
-# esta trabajando
     if length(classes)<=2
         oneHot = reshape(feature.==classes[1], :, 1);
         return oneHot;
@@ -42,30 +23,10 @@ function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{
     end;
 end;
 
-
 oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature))
-# Es otra definicion para la misma funcion, aqui se hace uso del
-# multiple dispatch, si el usuario no pasa las clases
-# y el array de targets NO es un bool(si lo fuera tendriamos abajo
-# una definicion mas especifica asi que no entraria en esta) entonces
-# llama a una funcion anonima que llama al oneHotEncoding con los
-# argumentos requeridos para que tome la primera definicion.
-# Notar que unique simplemente devuelve un array unidimensional
-# con los valores unicos, sin repetir, del iterable que se le pase.
-# Y los valores NO repetidos de los targets resultan ser las clases
-# asi que gucci.
 
-oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, (:,1))
-# Antes era reshape(feature, :, 1)) pero genuinamente creo que los
-# parentesis ayudan a la legibilidad dando a entender
-# mas rapidamente que se trata de primer parametro: aquello a lo que
-# le quieres cambiar la dimension, segundo parametro: la tupla que
-# contiene (filas,columnas) representando la dimension a la que lo
-# quieres cambiar.
-# Ambas sintaxis son equivalentes y puede verse en la documentacion.
+oneHotEncoding(feature::AbstractArray{Bool,1}) = reshape(feature, :, 1)
 
-# Simplemente otra funcion anonima donde si el array de feature ya son
-# bools
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
     return (minimum(dataset,dims=1),maximum(dataset,dims=1))
 end;
@@ -92,10 +53,10 @@ end;
 
 normalizeMinMax(dataset::AbstractArray{<:Real,2})=normalizeMinMax(dataset,calculateMinMaxNormalizationParameters(dataset))
 
+
 function normalizeZeroMean!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-# Also known as: StandartScaler
     avgValues = normalizationParameters[1];
-    stdValues = normalizationParameters[2];
+    stdValues = normalizationParameters[2];  
     dataset .-= avgValues;
     dataset ./= stdValues;
     dataset[:, vec(stdValues.==0)] .= 0;
@@ -112,27 +73,18 @@ end;
 
 normalizeZeroMean(dataset::AbstractArray{<:Real,2})=normalizeZeroMean(dataset, calculateZeroMeanNormalizationParameters(dataset))
 
+
 classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) = outputs.>=threshold;
-# EL ";" dentro de los () de la funcion simplemente separa los
-# argumentos posicionales de los argumentos con clave.
-# En python estos argumentos se separan por posicion ya que primero
-# se escriben los de posicion y por ultimo los que tienen clave.
-# Pues aqui se usa el ";" para eso.
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    # Matriz columna es lo mismo conceptualmente que un vector asi que
-    # simplemente usamos la definicion de arriba para tratar con este
-    # caso, convertimos tipos para poder usar la definicion de arriba
-    # y ajustamos la dimension con el reshape
     if size(outputs,2)==1
-        return reshape(classifyOutputs(vec(outputs); threshold=threshold), (:,1));
+        return reshape(classifyOutputs(vec(outputs); threshold=threshold), :, 1);
     else
-        # Aqui manejamos los casos de clasificacion NO binaria.
-        (_,indicesMaxEachInstance) = findmax(outputs, dims=2);
-        outputs_bool = falses(size(outputs));
-        outputs_bool[indicesMaxEachInstance].= true;
+         (_,indicesMaxEachInstance) = findmax(outputs, dims=2);
+         outputs_bool = falses(size(outputs));
+         outputs_bool[indicesMaxEachInstance].= true;  
         return outputs_bool;
-    end;
+    end; 
 end;
 
 accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})=mean(outputs.==targets);
@@ -161,9 +113,9 @@ end;
 function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutputs::Int; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)))
     ann = Chain(); #Creamos la ANN
     numInputsLayer=numInputs;
-
+    
     for (i, numOutputsLayer) in enumerate(topology)
-        ann = Chain(ann..., Dense(numInputsLayer, numOutputsLayer, transferFunctions[i]));
+        ann = Chain(ann..., Dense(numInputsLayer, numOutputsLayer, transferFunctions[i])); 
         numInputsLayer = numOutputsLayer; # Actualizamos para la siguiente capa
     end;
     if numOutputs==1
@@ -171,12 +123,43 @@ function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutp
     else
         ann = Chain(ann..., Dense(numInputsLayer, numOutputs, identity), softmax);
     end;
-
+    
     return ann;
 end;
 
-# function trainClassANN is now defined below in Ejercicio 3 section
+function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
+     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
+    inputs=Float32.(dataset[1]);
+    outputs=dataset[2];
 
+    ann=buildClassANN(size(inputs,2),topology,size(outputs,2);transferFunctions);
+    
+    inputs=inputs'
+    outputs=outputs'#Para usar flux hay que tener los patrones en columnas
+
+    loss(x, y) = (size(y, 1) == 1) ? Flux.Losses.binarycrossentropy(ann(x), y) : Flux.Losses.logitcrossentropy(ann(x), y);#Sobrecarga de la función de pérdida para que se adapte a clasificación binaria o multiclase
+    opt_state = Flux.setup(Flux.Adam(learningRate), ann);
+
+    loss_history = Float32[];
+    push!(loss_history, Float32(loss(inputs, outputs)));
+
+    for epoch in 1:maxEpochs#Bucle de entrenamiento 
+
+        if loss_history[end] <= minLoss # Si ya hemos alcanzado el error mínimo, salimos
+
+            break;
+        end;
+        Flux.train!(loss, ann, [(inputs, outputs)], opt_state);
+        push!(loss_history, Float32(loss(inputs, outputs)));# Añadir el nuevo loss al historial (en Float32)
+
+    end;
+
+    return (ann, loss_history);
+end;
+
+function trainClassANN(topology::AbstractArray{<:Int,1}, (inputs, targets)::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
+    return trainClassANN(topology, (inputs, reshape(targets, :, 1)); transferFunctions, maxEpochs, minLoss, learningRate);
+end;
 
 
 # ----------------------------------------------------------------------------------------------
@@ -184,18 +167,17 @@ end;
 # ----------------------------------------------------------------------------------------------
 
 using Random
+
 function holdOut(N::Int, P::Real)
-    indices = randperm(N);
-    numTest = round(Int, N * P);
-    testIndices = indices[1:numTest];
-    trainIndices = indices[numTest+1:end];
-    return (trainIndices, testIndices);
+    #
+    # Codigo a desarrollar
+    #
 end;
 
 function holdOut(N::Int, Pval::Real, Ptest::Real)
-    (trainingPlusValidationIndices, testIndices) = holdOut(N, Ptest);
-    (trainingIndices, validationIndices)         = holdOut(length(trainingPlusValidationIndices), Pval/(1-Ptest));
-    return (trainingPlusValidationIndices[trainingIndices], trainingPlusValidationIndices[validationIndices], testIndices);
+    #
+    # Codigo a desarrollar
+    #
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1},
@@ -204,76 +186,9 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     testDataset::      Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}=(Array{eltype(trainingDataset[1]),2}(undef,0,size(trainingDataset[1],2)), falses(0,size(trainingDataset[2],2))),
     transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01, maxEpochsVal::Int=20)
-
-    trainInputs  = Float32.(trainingDataset[1]');
-    trainTargets = trainingDataset[2]';
-
-    ann = buildClassANN(size(trainInputs, 1), topology, size(trainTargets, 1); transferFunctions=transferFunctions);
-
-    hasValidation = size(validationDataset[1], 1) > 0;
-    hasTest       = size(testDataset[1], 1) > 0;
-
-    if hasValidation
-        valInputs  = Float32.(validationDataset[1]');
-        valTargets = validationDataset[2]';
-    end;
-
-    if hasTest
-        testInputs  = Float32.(testDataset[1]');
-        testTargets = testDataset[2]';
-    end;
-
-    loss(m, x, y) = (size(y, 1) == 1) ? Flux.Losses.binarycrossentropy(m(x), y) : Flux.Losses.crossentropy(m(x), y);
-    opt_state = Flux.setup(Flux.Adam(learningRate), ann);
-
-    trainLosses = Float32[];
-    valLosses   = Float32[];
-    testLosses  = Float32[];
-
-    push!(trainLosses, loss(ann, trainInputs, trainTargets));
-    if hasValidation
-        push!(valLosses, loss(ann, valInputs, valTargets));
-        bestValLoss = valLosses[end];
-        bestANN = deepcopy(ann);
-    end;
-    if hasTest
-        push!(testLosses, loss(ann, testInputs, testTargets));
-    end;
-
-    epochsWithoutImprovement = 0;
-
-    for epoch in 1:maxEpochs
-        if trainLosses[end] <= minLoss
-            break;
-        end;
-
-        Flux.train!(loss, ann, [(trainInputs, trainTargets)], opt_state);
-
-        push!(trainLosses, loss(ann, trainInputs, trainTargets));
-        if hasValidation
-            push!(valLosses, loss(ann, valInputs, valTargets));
-            if valLosses[end] < bestValLoss
-                bestValLoss = valLosses[end];
-                bestANN = deepcopy(ann);
-                epochsWithoutImprovement = 0;
-            else
-                epochsWithoutImprovement += 1;
-            end;
-        end;
-        if hasTest
-            push!(testLosses, loss(ann, testInputs, testTargets));
-        end;
-
-        if hasValidation && (epochsWithoutImprovement >= maxEpochsVal)
-            break;
-        end;
-    end;
-
-    if !hasValidation
-        bestANN = ann;
-    end;
-
-    return (bestANN, trainLosses, valLosses, testLosses);
+    #
+    # Codigo a desarrollar
+    #
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1},
@@ -282,11 +197,9 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     testDataset::      Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}=(Array{eltype(trainingDataset[1]),2}(undef,0,size(trainingDataset[1],2)), falses(0)),
     transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01, maxEpochsVal::Int=20)
-
-    return trainClassANN(topology, (trainingDataset[1], reshape(trainingDataset[2], :, 1));
-        validationDataset=(validationDataset[1], reshape(validationDataset[2], :, 1)),
-        testDataset=(testDataset[1], reshape(testDataset[2], :, 1)),
-        transferFunctions=transferFunctions, maxEpochs=maxEpochs, minLoss=minLoss, learningRate=learningRate, maxEpochsVal=maxEpochsVal);
+    #
+    # Codigo a desarrollar
+    #
 end;
 
 
@@ -410,8 +323,8 @@ SVMClassifier = MLJ.@load SVC pkg=LIBSVM verbosity=0
 kNNClassifier = MLJ.@load KNNClassifier pkg=NearestNeighborModels verbosity=0
 DTClassifier  = MLJ.@load DecisionTreeClassifier pkg=DecisionTree verbosity=0
 
-function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict,
-    dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}},
+function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, 
+    dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, 
     crossValidationIndices::Array{Int64,1})
     #
 end;

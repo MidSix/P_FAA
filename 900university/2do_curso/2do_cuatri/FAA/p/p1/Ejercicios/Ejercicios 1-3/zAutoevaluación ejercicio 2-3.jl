@@ -1,5 +1,5 @@
 # Archivo de pruebas para realizar autoevaluación de algunas funciones de los ejercicios
-include("Firmas.jl");
+include("sol_ejercicios2-3.jl");
 # Importamos el archivo con las soluciones a los ejercicios
 # Simplemente se trae el espacio de nombres del modulo en cuestion
 # a diferencia de using que copia el espacio de nombres pero se
