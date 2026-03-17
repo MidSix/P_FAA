@@ -143,7 +143,7 @@ accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; thres
 
 function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2}; threshold::Real=0.5)
     if size(outputs,2)==1
-        return accuracy(vec(outputs),vec(targets));
+        return accuracy(vec(outputs), vec(targets); threshold=threshold);
     else
         correct_outputs = classifyOutputs(outputs;threshold=threshold);
         return accuracy(correct_outputs,targets);
