@@ -23,8 +23,7 @@ Pkg.status("MLJ")
 
 # Cargamos el dataset
 using DelimitedFiles: readdlm
-dataset = readdlm("iris.data",',');
-# Preparamos las entradas
+dataset = readdlm(joinpath(@__DIR__, "iris.data"), ',');
 inputs = convert(Array{Float32,2}, dataset[:,1:4]);
 targets = dataset[:,5];
 
