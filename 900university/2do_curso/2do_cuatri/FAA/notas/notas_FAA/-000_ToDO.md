@@ -1,0 +1,2 @@
+- [x] Set Julia in new computer
+- [ ] 

@@ -1,1 +1,14 @@
 .DS_Store
+# Simplemente ignoramos todo el contenido de la carpeta p, 
+# excepto los directorios p1 y p2
+
+/*
+!README.md
+!.gitignore
+!900university/
+900university/2do_curso/2do_cuatri/FAA/*
+!900university/2do_curso/2do_cuatri/FAA/p/
+900university/2do_curso/2do_cuatri/FAA/p/*
+!900university/2do_curso/2do_cuatri/FAA/p/p1/
+!900university/2do_curso/2do_cuatri/FAA/p/p2/
+!900university/2do_curso/2do_cuatri/FAA/notas/

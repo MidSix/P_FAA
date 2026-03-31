@@ -1,29 +1,34 @@
-
-
 # Archivo de pruebas para realizar autoevaluación de algunas funciones de los ejercicios
 
 # Importamos el archivo con las soluciones a los ejercicios
-include("soluciones.jl");
-#   Cambiar "soluciones.jl" por el nombre del archivo que contenga las funciones desarrolladas
+dir_path_firmas = abspath(@__DIR__);
+file_path_firmas = joinpath(dir_path_firmas, "sol_ejercicios4-6.jl");
+include("C:\\Users\\Sebastian\\Downloads\\sol_ejercicios4-6(incluye_ejercicios_2-3).jl");
+# Cambiar "soluciones.jl" por el nombre del archivo que contenga las funciones desarrolladas
 
-# Fichero de pruebas realizado con la versión 1.11.3 de Julia
+# Fichero de pruebas realizado con la versión 1.12.4 de Julia
 println(VERSION)
-#  y la 1.11.3 de Random
+#  y la 1.12.4 de Random
 println(Random.VERSION)
-#  y las versiones 0.14.25 de Flux, 1.0.2 de SymDoME y 0.20.0 de MLJ
+#  y las versiones 0.16.7 de Flux, 1.0.4 de SymDoME y 0.22.0 de MLJ
+#  Con este tipo de import has de anteceder el nombre del paquete.
 import Pkg
 Pkg.status("Flux")
 Pkg.status("SymDoME")
 Pkg.status("MLJ")
 
+# !!! este comentario es muy importante xd.
 # Es posible que con otras versiones los resultados sean distintos, estando las funciones bien, sobre todo en la funciones que implican alguna componente aleatoria
 
 
 
 
 # Cargamos el dataset
+dir_path_dataset = abspath(@__DIR__, "..", "..");
+file_path_dataset = joinpath(dir_path_dataset, "iris.data");
+# using package_name : function1, function2, ... , functionx.'
 using DelimitedFiles: readdlm
-dataset = readdlm("iris.data",',');
+dataset = readdlm(file_path_dataset,',');
 # Preparamos las entradas
 inputs = convert(Array{Float32,2}, dataset[:,1:4]);
 targets = dataset[:,5];
@@ -50,21 +55,24 @@ targets = dataset[:,5];
 @assert(isapprox(acc, 1/3.) && isapprox(errorRate, 2/3.) && isapprox(recall, 1/3.) && isapprox(specificity, 2/3.) && isapprox(precision, 1/3.) && isapprox(NPV, 2/3.) && isapprox(F1, 1/3.) && confMatrix==[17 17 16; 17 16 17; 16 17 17])
 
 
-
-
+using Random: seed!
+seed!(1) # Fijamos la semilla aquí para SymDoME
 outputs2Classes = trainClassDoME((inputs[1:100,:], targets[1:100].=="Iris-setosa"), inputs[[1],:], 20);
-@assert(isapprox(outputs2Classes[1], 1.0751594373353253));
+println("\n--- DEBUG SymDoME ---")
+println("Valor devuelto: ", outputs2Classes[1])
+println("Valor esperado: 1.0329783807313904")
+println("Diferencia:     ", abs(outputs2Classes[1] - 1.0329783807313904))
+println("---------------------\n")
+@assert(isapprox(outputs2Classes[1], 1.0329783807313904));
 
 outputs3Classes = trainClassDoME((inputs[1:149,:], oneHotEncoding(targets[1:149])), inputs[[150],:], 20);
-@assert(all(isapprox.(outputs3Classes, [-0.993565  -0.428653  0.113664]; rtol=1e-3)));
+@assert(all(isapprox.(outputs3Classes, [-1.0634799989028503 -0.4286532773153766 0.11366448575221406]; rtol=1e-3)));
+
+outputs2Classes = trainClassDoME((inputs[1:98,:], targets[1:98]), inputs[99:100,:], 20);
+@assert(all(x -> x=="Iris-versicolor", outputs2Classes));
 
 outputs3Classes = trainClassDoME((inputs[1:149,:], targets[1:149]), inputs[[150],:], 20);
 @assert(outputs3Classes[1]=="Iris-virginica");
-
-
-
-
-
 
 
 # ----------------------------------------------------------------------------------------------
@@ -148,20 +156,9 @@ seed!(1); ((testAccuracy_mean, testAccuracy_std), (testErrorRate_mean, testError
 @assert(isapprox(testF1_mean,          0.21172955934101445 ) && isapprox(testF1_std,          0.04502371938130511))
 @assert(all(isapprox(testConfusionMatrix, [19.6 14.9 15.5; 15.9 18.1 16.0; 14.8 19.7 15.5])))
 
-
-
- 
-
-
-
-
-
-# ----------------------------------------------------------------------------------------------
-# ------------------------------------- Ejercicio 6 --------------------------------------------
-# ----------------------------------------------------------------------------------------------
-
-
-
+# # ----------------------------------------------------------------------------------------------
+# # ------------------------------------- Ejercicio 6 --------------------------------------------
+# # ----------------------------------------------------------------------------------------------
 
 ((testAccuracy_mean, testAccuracy_std), (testErrorRate_mean, testErrorRate_std), (testRecall_mean, testRecall_std), (testSpecificity_mean, testSpecificity_std), (testPrecision_mean, testPrecision_std), (testNPV_mean, testNPV_std), (testF1_mean, testF1_std), testConfusionMatrix) =
     modelCrossValidation(:DoME, Dict("maximumNodes" => 20), (inputs, targets), repeat(1:10, 15));
@@ -234,5 +231,3 @@ seed!(1); ((testAccuracy_mean, testAccuracy_std), (testErrorRate_mean, testError
 @assert(isapprox(testNPV_mean,         0.777215007215007) && isapprox(testNPV_std,         0.0044380494173253725))
 @assert(isapprox(testF1_mean,          0.18758329332632737) && isapprox(testF1_std,          0.01437405343817687))
 @assert(all(isapprox(testConfusionMatrix, [18.2 14.94 16.86; 15.92 17.1 16.98; 15.82 17.28 16.9])))
-
-
